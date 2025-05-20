@@ -1,0 +1,23 @@
+body {
+font-family:Times New Roman, sans-serif;
+background-color: #f0f0f0;
+text-align: center;
+padding: 50px;
+}
+h1 {
+color: #2c3e50;
+}
+button {
+padding: 10px 20px;
+font-size: 16px;
+}
+#mobile-controls div {
+  width: 800x;
+  height: 800x;
+  font-size: 300x;
+  padding: 100x;
+  border-radius: 120x;
+  background-color: #333;
+  color: white;
+  text-align: center;
+}

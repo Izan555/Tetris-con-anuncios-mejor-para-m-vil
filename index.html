@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Tetris en JavaScript</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+     background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAARMAAAC3CAMAAAAGjUrGAAAAD1BMVEX///+uHCghRousABgMPoiYPLyyAAABB0lEQVR4nO3QuRGAAAzAsPDsPzN9XFJAIU3g8xxs83XAD3lSnpQn5Ul5Up6UJ+VJeVKelCflSXlSnpQn5Ul5Up6UJ+VJeVKelCflSXlSnpQn5Ul5Up6UJ+VJeVKelCflSXlSnpQn5Ul5Up6UJ+VJeVKelCflSXlSnpQn5Ul5Up6UJ+VJeVKe1FxsAwAAAAAAAAAAAAAAAAAAAMB7N9ucbJ6UJ+VJeVKelCflSXlSnpQn5Ul5Up6UJ+VJeVKelCflSXlSnpQn5Ul5Up6UJ+VJeVKelCflSXlSnpQn5Ul5Up6UJ+VJeVKelCflSXlSnpQn5Ul5Up6UJ+VJeVKelCflSXlSnpQn5Uk9Q6/I4nGDdNoAAAAASUVORK5CYII=') no-repeat center center fixed;
+  background-size: cover;
+      color: white;
+      font-family: 'Arial', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      gap: 40px;
+    }
+
+    #game-area {
+      display: flex;
+      flex-direction: row;
+      gap: 40px;
+      align-items: flex-start;
+    }
+
+    #tetris {
+      background: #000;
+      border: 2px solid #fff;
+    }
+
+    #info {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    #info p {
+      margin: 0;
+      font-size: 1.2rem;
+    }
+
+    #next {
+      background: #000;
+      border: 2px solid #555;
+    }
+
+    #toggle-music, #reset-button {
+      padding: 8px 12px;
+      font-size: 1rem;
+      background: #222;
+      color: #fff;
+      border: 1px solid #555;
+      cursor: pointer;
+    }
+
+    h1 {
+      position: absolute;
+      top: 10px;
+      font-size: 2rem;
+      text-align: center;
+      width: 100%;
+      color: white;
+      text-shadow: 2px 2px 4px #000;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>¡¡Juega al Tetris falso 100% gratis y sin virus!!</h1>
+<div id="controls-wrapper" style="display: flex; align-items: flex-start; gap: 50px;">
+  <!-- VIDEO A LA IZQUIERDA -->
+  <div id="video-box">
+<aside>
+
+  <iframe width="200" height="400" src="https://www.youtube.com/embed/jBXWOwHOylw" frameborder="10" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+</aside>
+  </div>
+<div id="game-area">
+<div id="controls" style="color: black;">
+
+
+    <h3>Controles</h3>
+    <div class="control-grid">
+      <div></div>
+     
+
+<div id="mobile-controls">
+  <button id="btn-rotate">🔄</button>
+  <button id="btn-left">◀️</button>
+  <button id="btn-down">🔽</button>
+  <button id="btn-right">▶️</button>
+</div>
+
+<div id="explain"><br><small>Si juegas en móvil, pulsa los botones.</small></div>
+    </div>
+  </div>
+    <canvas id="tetris" width="240" height="400"></canvas>
+
+    <div id="info" style="color: black;">
+
+      <p>Puntaje: <span id="score">0</span></p>
+      <p>Nivel: <span id="level">0</span></p>
+      <p>Líneas: <span id="lines">0</span></p>
+
+      <button id="reset-button" onclick="resetGame()">🔄 Reiniciar</button>
+      <button id="toggle-music">🔊 Pausar música</button>
+<button id="pause-button" onclick="togglePause()">⏸️ Pausar</button>
+
+      <p>Próxima:</p>
+      <canvas id="next" width="80" height="80"></canvas>
+    </div>
+  </div>
+
+  <audio id="bg-music" src="bg-music.mp3" autoplay loop></audio>
+  <script>
+    // Música de fondo
+    const bgMusic = document.getElementById('bg-music');
+    const musicButton = document.getElementById('toggle-music');
+
+    musicButton.addEventListener('click', () => {
+      if (bgMusic.paused) {
+        bgMusic.play();
+        musicButton.textContent = '🔊 Pausar música';
+      } else {
+        bgMusic.pause();
+        musicButton.textContent = '🔈 Reanudar música';
+      }
+    });
+
+    // Permitir reproducción tras interacción
+    document.addEventListener('keydown', () => {
+      bgMusic.play().catch(() => {});
+    }, { once: true });
+  </script>
+
+  <script src="tetris.js"></script>
+
+
+<script>
+  let intervalId = null;
+
+  function startRepeating(action, speed = 100) {
+    if (intervalId) clearInterval(intervalId);
+    action(); // Ejecuta una vez inmediatamente
+    intervalId = setInterval(action, speed);
+  }
+
+  function stopRepeating() {
+    clearInterval(intervalId);
+    intervalId = null;
+  }
+
+  function setupHoldButton(buttonId, action, speed = 110) {
+    const btn = document.getElementById(buttonId);
+    if (!btn) return;
+
+    btn.addEventListener('mousedown', () => startRepeating(action, speed));
+    btn.addEventListener('mouseup', stopRepeating);
+    btn.addEventListener('mouseleave', stopRepeating);
+
+    btn.addEventListener('touchstart', (e) => {
+      e.preventDefault(); // evita scroll en móviles
+      startRepeating(action, speed);
+    });
+    btn.addEventListener('touchend', stopRepeating);
+  }
+
+  // Asignar a los botones
+  setupHoldButton('btn-left', () => playerMove(-1));
+  setupHoldButton('btn-right', () => playerMove(1));
+  setupHoldButton('btn-down', playerDrop);
+
+</script>
+
+</body>
+</html>
